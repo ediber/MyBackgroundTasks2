@@ -10,7 +10,10 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
 import androidx.annotation.RequiresApi
+import androidx.work.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.*
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -46,8 +49,52 @@ class MainActivity : AppCompatActivity() {
 
         start_forground_service.setOnClickListener(View.OnClickListener {
             val service = Intent(this, MyService::class.java)
-          //  service.putExtra("KEY_COMMAND", "start");
+            service.putExtra("KEY_COMMAND", "start");
             startForegroundService(service)
         })
+
+        start_coroutines.setOnClickListener(View.OnClickListener {
+             var viewModelJob = Job()
+             val coroutineScope = CoroutineScope(viewModelJob + Dispatchers.Main)
+
+            coroutineScope.launch {
+                doSomething()
+            }
+        })
+
+        start_work_manager.setOnClickListener(View.OnClickListener {
+            val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.UNMETERED)
+                    .setRequiresCharging(true)
+                    .build()
+
+            val uploadWorkRequest: OneTimeWorkRequest =
+                    OneTimeWorkRequestBuilder<UploadWorker>()
+                            .setConstraints(constraints)
+                            .build()
+
+            WorkManager
+                    .getInstance(this)
+                    .enqueue(uploadWorkRequest)
+
+            /*    WorkManager
+         .getInstance(this)
+         .beginWith(uploadWorkRequest)
+         .then(mutableListOf(uploadWorkRequest, uploadWorkRequest))
+         .then(coRoutineWorkRequest)
+         .enqueue()*/
+
+
+        })
+    }
+
+    private suspend fun doSomething() {
+        withContext(Dispatchers.IO){
+            // some action
+        }
+
+        withContext(Dispatchers.IO){
+            // some action
+        }
     }
 }
